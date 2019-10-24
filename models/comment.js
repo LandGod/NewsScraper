@@ -17,8 +17,7 @@ var CommentSchema = new Schema({
     postDate: {
         type: Date,
         required: true
-    },
-    parent: Schema.Types.Article
+    }
 });
 
 // Create model from schema

@@ -37,12 +37,7 @@ require("./routes/html-routes.js")(app);
 require("./routes/api-routes.js")(app);
 
 // Connect to the Mongo DB
-mongoose.connect(MONGODB_URI, { useNewUrlParser: true });
-
-// Syncing our database and logging a message to the user upon success
-db.on("error", function (error) {
-  console.log("Database Error:", error);
-});
+mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
 app.listen(PORT, function () {
   console.log("Server ONLINE ==> 🌎 Listening on port %s. ", PORT);

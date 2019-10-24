@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const Comment = require("./comment");
 
 // Aliase schema constructor
 const Schema = mongoose.Schema;
@@ -25,7 +26,7 @@ var ArticleSchema = new Schema({
         type: Date,
         required: true
     },
-    children: [Schema.Types.Comment]
+    children: [Comment.schema]
 });
 
 // Create model from schema
