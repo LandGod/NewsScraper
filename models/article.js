@@ -16,7 +16,8 @@ var ArticleSchema = new Schema({
     },
     url: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     }, 
     byline: {
         type: String,
@@ -25,6 +26,9 @@ var ArticleSchema = new Schema({
     publishDate: {
         type: Date,
         required: true
+    },
+    location: {
+        type: String
     },
     children: [Comment.schema]
 });
