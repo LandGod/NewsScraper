@@ -1,3 +1,4 @@
+const passport = require("../config/passport"); // User Authentication
 var assert = require('assert').strict;
 
 module.exports = function (app) {
