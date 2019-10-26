@@ -8,8 +8,9 @@ module.exports = function (app) {
 
     app.get('/api/scrape', function (req, res) {
 
-        // Just for debug:
-        let allArticles = [];
+        // Track new articles added to db this time around
+        let newArticleIds = [];
+        let promises = [];
 
         console.log('Entered GET route for api/scrape')
         axios.get("https://www.apnews.com/apf-topnews").then((scrapedData) => {
@@ -24,7 +25,7 @@ module.exports = function (app) {
                 let articleInfo = {};
 
                 // Pull info that does not need to be further parsed
-                articleInfo.title = $(this).children('div.CardHeadline').children('a[data-key=card-headline]').children('h1').text();
+                articleInfo.headline = $(this).children('div.CardHeadline').children('a[data-key=card-headline]').children('h1').text();
                 articleInfo.publishDate = $(this).children('div.CardHeadline').children('div').children('span.Timestamp').attr('data-source');
                 articleInfo.byline = $(this).children('div.CardHeadline').children('div').children('span.c0152').text() || "By Staff"
                 articleInfo.url = "https://www.apnews.com" + $(this).children('div.CardHeadline').children('a[data-key=card-headline]').attr('href');
@@ -41,18 +42,52 @@ module.exports = function (app) {
                 }
 
                 // Check that what we ended up with is useable data; If it isn't, continue to next loop
-                if (articleInfo.title && articleInfo.url && !articleInfo.url.includes('undefined')) {
-                    allArticles.push(articleInfo);
-                } else { continue };
+                if (articleInfo.headline && articleInfo.url && !articleInfo.url.includes('undefined')) {
 
-                //TODO: Add article to database
+                    // Insert into database via mongoose and return a promise object so we can track completion
+                    let creationPromise = asyncMongooseCreate('Article', articleInfo, function (err, newArticle) {
+
+                        // If there is an error due to a duplicate url being detected, ignore it.
+                        // We don't want that added to the database, so getting rejected is fine.
+                        // If any other type of error occures, logg it.
+                        // Also if Mongo passes null to err, don't try to do anyting with it
+                        if (err && err.code !== 11000) {
+
+                            console.log('Database error during asynchMongooseCreate')
+                            throw (err)
+
+                        } else if (!err) {
+                            // Track the fact that at least one piece of data was added during this scrape
+                            newArticleIds.push(newArticle._id);
+
+                            console.log('Successfully added new article to the database with id:');
+                            console.log(newArticle._id)
+                        } else {
+                            console.log(`A duplicate was ignored during cycle ${i}`);
+                        }
+                    });
+
+                    // Add that promise object to a list of all db operation promises from the loop
+                    promises.push(creationPromise);
+
+                };
+
+                // Else do nothing
 
             });
 
-            res.send(allArticles)
+            // Wait until all database operation have completed before responding to the client
+            Promise.all(promises).then(() => {
+                // Check whether or not the scrape added any new data to our database and respond accordingly
+                if (newArticleIds.length > 0) { res.status(201).json(newArticleIds) }
+                else { res.status(204).end() }
+            }).catch((err) => {
+                res.status(500).send(err);
+            });
+
 
         }).catch((error) => {
-            res.status(500).send('error');
+            res.status(500).send(error);
             console.log(error);
             return;
         })
@@ -63,3 +98,14 @@ module.exports = function (app) {
 
 const LocationRegEx = new RegExp('^[^\(]+');
 const SummaryRegEx = new RegExp('—[^]+$');
+
+function asyncMongooseCreate(model, dataPackage, callback) {
+    return new Promise(function (resolve, reject) {
+        db[model].create(dataPackage, function (err, newObject) {
+            resolve(callback(err, newObject));
+
+            // If any error happens it will triger reject automatically
+
+        })
+    })
+}
