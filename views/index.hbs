@@ -1,0 +1,34 @@
+<div class="container">
+    <div class="row">
+        <div class="col-12 text-center">
+            <h1>Top News Stories from the AP</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12 text-center">
+            <button class="btn btn-sm btn-danger">
+                Refresh News
+            </button>
+        </div>
+    </div>
+    <hr class="mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-12">
+            {{#each newsItems}}
+            <div class="row justify-content-center mb-2">
+                <div class="col-12 text-center" article-id="{{this._id}}">
+                    <h2>{{this.headline}}</h2>
+                    {{#if this.location}}
+                    <h6 class="dateLine" isoDate="{{this.publishDate}}">{{this.location}} | <span class="displayDate">{{this.publishDate}}</span></h6>
+                    {{else}}
+                    <h6 class="dateLine" isoDate="{{this.publishDate}}"> <span class="displayDate">{{this.publishDate}}</span></h6>
+                    {{/if}}
+                    <p>{{this.summary}}</p>
+                    <h6>{{this.byline}}</h6>
+                    <hr>
+                </div>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+</div>

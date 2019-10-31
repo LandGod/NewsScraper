@@ -21,7 +21,7 @@ var ArticleSchema = new Schema({
     }, 
     byline: {
         type: String,
-        default: 'Staff'
+        default: 'AP Staff'
     },
     publishDate: {
         type: Date,

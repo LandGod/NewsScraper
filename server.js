@@ -22,8 +22,8 @@ const db = require("./models");
 
 // Creating express app and configuring middleware needed for authentication
 var app = express();
-app.engine('handlebars', exphbs());
-app.set('view engine', 'handlebars');
+app.engine('hbs', exphbs({extname: 'hbs'}));
+app.set('view engine', 'hbs');
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static("./public"));
